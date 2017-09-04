@@ -43,6 +43,14 @@ class DatabaseBRATS(object):
             tumor_dist_dir: path to the tumor distance maps
             seg_scores_dir: path to the segmentation scores
             seg_results_dir: path to the segmentation results
+
+        Methods:
+            load_training_dict: creating a dictionary of training scans
+            load_validation_dict: creating a dictionary of validation scans
+            load_test_dict: creating a dictionary of testing scans
+            train_valid_split: split training database into train and valid
+                subsets (validation dataset is used for evaluation)
+
     """
     def __init__(self, db_path, n_classes=4, classes=[0, 1, 2, 4],
                  n_modalities=4, modalities=['t1', 't2', 't1ce', 'flair'],
@@ -102,7 +110,7 @@ class DatabaseBRATS(object):
                 self.valid_dict[s] = ScanBRATS(s, s_relative_path, 'valid')
 
     def load_test_dict(self, folder_name='Brats17TestingData'):
-        """Creating a dictionary of validation scans."""
+        """Creating a dictionary of testing scans."""
         """
             Arguments:
                 folder_name: folder where the testing data is stored
