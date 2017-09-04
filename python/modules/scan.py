@@ -108,7 +108,6 @@ class ScanBRATS(object):
         """
         volume_path = os.path.join(db.normalized_volumes_dir, self.name,
                                    self.name + '_' + m + '.bin')
-
         return np.reshape(np.fromfile(volume_path, dtype='float32'),
                           [db.h, db.w, db.d])
 
@@ -122,7 +121,6 @@ class ScanBRATS(object):
         """
         brain_mask_path = os.path.join(db.brain_masks_dir,
                                        self.name + '_brain_mask.bin')
-
         np_array = np.fromfile(brain_mask_path, dtype='uint8')
         return np.reshape(np_array, (db.h, db.w, db.d))
 
