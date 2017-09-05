@@ -24,8 +24,6 @@ class PatchExtractorBRATS(object):
             extract_data: extract data for training or validation
                 (with equal distribution of classes)
             extract_test_patches: extract data for testing
-
-
     """
     def __init__(self, w=240, h=240, d=155,
                  lp_w=45, lp_h=45, lp_d=11, sp_w=17, sp_h=17, sp_d=4,
@@ -197,7 +195,6 @@ class PatchExtractorBRATS(object):
             ps['region_1'][c] = {}
             ps['region_1'][c]['l_patch'], ps['region_1'][c]['s_patch'] =\
                 self._class_patches(db, scan, volumes, mask_1, pp, seg, mode)
-
         for c in range(2):
             if c == 0:
                 mask_2 = np.where((volumes[4] == 0) * tdm_2)
