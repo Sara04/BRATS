@@ -9,7 +9,7 @@ class PreprocessorBRATS(object):
     """Class for BRATS 2017 data preprocessing."""
 
     """
-        Ättributes:
+        Attributes:
             norm_type: normalization type (mean_std or min_max)
 
             train_norm_params: dictionary for train normalization parameters
