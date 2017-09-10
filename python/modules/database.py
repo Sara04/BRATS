@@ -50,6 +50,7 @@ class DatabaseBRATS(object):
             load_test_dict: creating a dictionary of testing scans
             train_valid_split: split training database into train and valid
                 subsets (validation dataset is used for evaluation)
+            name: returns database name with train valid split parameter
     """
     def __init__(self, db_path, n_classes=4, classes=[0, 1, 2, 4],
                  n_modalities=4, modalities=['t1', 't2', 't1ce', 'flair'],
@@ -162,3 +163,7 @@ class DatabaseBRATS(object):
                 self.train_valid.append(h)
             else:
                 self.train_train.append(h)
+
+    def name(self):
+        """Return database name."""
+        return "%s(valid_p=%s)" % (type(self).__name__, self.valid_p)
