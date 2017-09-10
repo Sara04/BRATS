@@ -104,7 +104,6 @@ def create_modules_objects_from_config(config_path):
                                    configuration['modules'][m]['name'])
             if not issubclass(module_class, mother_class):
                 _non_existing_child_class(module_class, mother_class)
-
         else:
             module_class = mother_class
 
