@@ -50,7 +50,6 @@ class DatabaseBRATS(object):
             load_test_dict: creating a dictionary of testing scans
             train_valid_split: split training database into train and valid
                 subsets (validation dataset is used for evaluation)
-
     """
     def __init__(self, db_path, n_classes=4, classes=[0, 1, 2, 4],
                  n_modalities=4, modalities=['t1', 't2', 't1ce', 'flair'],
@@ -140,14 +139,16 @@ class DatabaseBRATS(object):
 
         lgg_scans = os.listdir(os.path.join(self.db_path, folder_name, 'LGG'))
         n_lgg_scans = len(lgg_scans)
-        lgg_select_valid = np.random.choice(n_lgg_scans, int(n_lgg_scans *
-                                                             self.valid_p),
+        lgg_select_valid = np.random.choice(n_lgg_scans,
+                                            int(np.round(n_lgg_scans *
+                                                         self.valid_p)),
                                             replace=False)
 
         hgg_scans = os.listdir(os.path.join(self.db_path, folder_name, 'HGG'))
         n_hgg_scans = len(hgg_scans)
-        hgg_select_valid = np.random.choice(n_hgg_scans, int(n_hgg_scans *
-                                                             self.valid_p),
+        hgg_select_valid = np.random.choice(n_hgg_scans,
+                                            int(np.round(n_hgg_scans *
+                                                         self.valid_p)),
                                             replace=False)
 
         for l_idx, l in enumerate(lgg_scans):
