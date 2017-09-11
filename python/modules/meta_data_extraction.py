@@ -1,4 +1,4 @@
-"""Class for BRATS 2017 database management."""
+"""Class for BRATS 2017 meta data extraction."""
 import os
 import sys
 import numpy as np
@@ -9,11 +9,10 @@ class MetaDataExtractorBRATS(object):
     """Class for BRATS 2017 database management."""
 
     """
-        Attributes:
-
         Methods:
             compute_brain_masks: compute and save brain masks
-
+            compute_tumor_distance_maps: compute and save
+                tumor distance maps
     """
 
     def _compute_and_save_brain_mask(self, scan, db, brain_mask_path):
@@ -90,7 +89,6 @@ class MetaDataExtractorBRATS(object):
             Arguments:
                 db: DatabaseBRATS object
                 exp_out: path to the experiment meta output
-                mode: training or validation subsets
         """
         tdm_output_path = os.path.join(exp_out, 'tumor_dist_maps', 'train')
         db.tumor_dist_dir = tdm_output_path
