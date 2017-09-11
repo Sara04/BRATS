@@ -6,7 +6,7 @@ from scipy.ndimage import morphology
 
 
 class MetaDataExtractorBRATS(object):
-    """Class for BRATS 2017 database management."""
+    """Class for BRATS 2017 meta data extraction."""
 
     """
         Methods:
