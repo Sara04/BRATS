@@ -4,6 +4,7 @@ import json
 
 from modules.database import DatabaseBRATS
 from modules.preprocessing import PreprocessorBRATS
+from modules.meta_data_extraction import MetaDataExtractorBRATS
 from modules.patch_extraction import PatchExtractorBRATS
 from modules.segmentation import SegmentatorBRATS
 from modules.postprocessing import PostprocessorBRATS
@@ -18,12 +19,17 @@ required_modules =\
         'database':
         {
             'mother_class': DatabaseBRATS,
-            'child_classes': None,
+            'child_classes': None
         },
         'preprocessor':
         {
             'mother_class': PreprocessorBRATS,
-            'child_classes': modules.preprocessors,
+            'child_classes': modules.preprocessors
+        },
+        'meta_data_extractor':
+        {
+            'mother_class': MetaDataExtractorBRATS,
+            'child_classes': None
         },
         'patch_extractor':
         {
