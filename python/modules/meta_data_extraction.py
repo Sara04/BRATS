@@ -13,6 +13,8 @@ class MetaDataExtractorBRATS(object):
             compute_brain_masks: compute and save brain masks
             compute_tumor_distance_maps: compute and save
                 tumor distance maps
+            compute_normalized_volumes: compute and save
+                normalized volumes
     """
 
     def _compute_and_save_brain_mask(self, scan, db, brain_mask_path):
@@ -33,7 +35,7 @@ class MetaDataExtractorBRATS(object):
             Arguments:
                 db: DatabaseBRATS object
                 exp_out: path to the experiment meta output
-                mode: training or validation subsets
+                mode: train, valid or test database
         """
         if mode == 'train':
             data_dict = db.train_dict
@@ -42,13 +44,11 @@ class MetaDataExtractorBRATS(object):
         elif mode == 'test':
             data_dict = db.test_dict
 
-        bm_output_path = os.path.join(exp_out, 'brain_masks', mode)
-        db.brain_masks_dir = bm_output_path
-        done_path = os.path.join(bm_output_path, 'done')
-        if not os.path.exists(done_path):
+        db.brain_masks_dir = os.path.join(exp_out, 'brain_masks', mode)
+        if not os.path.exists(os.path.join(db.brain_masks_dir, 'done')):
             n_subjects = len(data_dict)
-            if not os.path.exists(bm_output_path):
-                os.makedirs(bm_output_path)
+            if not os.path.exists(db.brain_masks_dir):
+                os.makedirs(db.brain_masks_dir)
             for s_idx, s in enumerate(data_dict):
                 self._compute_and_save_brain_mask(data_dict[s], db)
                 sys.stdout.write("\rComputing and saving brain masks: "
@@ -56,7 +56,7 @@ class MetaDataExtractorBRATS(object):
                                  (100 * float(s_idx + 1) / n_subjects))
                 sys.stdout.flush()
             sys.stdout.write("\n")
-            with open(done_path, 'w') as f:
+            with open(os.path.join(db.brain_masks_dir, 'done'), 'w') as f:
                 f.close()
         else:
             print "Brain masks already computed"
@@ -90,13 +90,11 @@ class MetaDataExtractorBRATS(object):
                 db: DatabaseBRATS object
                 exp_out: path to the experiment meta output
         """
-        tdm_output_path = os.path.join(exp_out, 'tumor_dist_maps', 'train')
-        db.tumor_dist_dir = tdm_output_path
-        done_path = os.path.join(tdm_output_path, 'done')
-        if not os.path.exists(done_path):
+        db.tumor_dist_dir = os.path.join(exp_out, 'tumor_dist_maps', 'train')
+        if not os.path.exists(os.path.join(db.tumor_dist_dir, 'done')):
             n_subjects = len(db.train_dict)
-            if not os.path.exists(tdm_output_path):
-                os.makedirs(tdm_output_path)
+            if not os.path.exists(db.tumor_dist_dir):
+                os.makedirs(db.tumor_dist_dir)
             for s_idx, s in enumerate(db.train_dict):
                 self._compute_and_save_tumor_distance_map(db.train_dict[s], db)
                 sys.stdout.write("\rComputing and saving tumor distance maps: "
@@ -104,7 +102,53 @@ class MetaDataExtractorBRATS(object):
                                  (100 * float(s_idx + 1) / n_subjects))
                 sys.stdout.flush()
             sys.stdout.write("\n")
-            with open(done_path, 'w') as f:
+            with open(os.path.join(db.tumor_dist_dir, 'done'), 'w') as f:
                 f.close()
         else:
             print "Tumor distance maps already computed"
+
+    def _normalize_and_volumes(self, scan, db, prep):
+
+        n_volumes = prep.normalize_volumes(db, scan)
+        for m in db.modalities[:-1]:
+            n_volume_path = os.path.join(db.norm_volumes_dir,
+                                         scan.name,
+                                         scan.name + '_' + m + '.bin')
+            if not os.path.exists(os.path.dirname(n_volume_path)):
+                os.makedirs(os.path.dirname(n_volume_path))
+            n_volumes[m].tofile(n_volume_path)
+
+    def compute_normalized_volumes(self, db, prep, exp_out, mode):
+        """Compute and save normalized volumes."""
+        """
+            Arguments:
+                db: DatabaseBRATS object
+                prep: PreprocessorBRATS object
+                exp_out: path to the experiment meta data output
+                mode: train, valid or test database
+        """
+        if mode == 'train':
+            data_dict = db.train_dict
+        elif mode == 'valid':
+            data_dict = db.valid_dict
+        elif mode == 'test':
+            data_dict = db.test_dict
+
+        db.norm_volumes_dir = os.path.join(exp_out,
+                                           'normalized_volumes', mode)
+        if not os.path.exists(os.path.join(db.norm_volumes_dir, 'done')):
+            n_subjects = len(data_dict)
+            if not os.path.exists(db.norm_volumes_dir):
+                os.makedirs(db.norm_volumes_dir)
+            for s_idx, s in enumerate(data_dict):
+                self._normalize_and_volumes(data_dict[s], db, prep)
+                sys.stdout.write("\rComputing and saving normalized volumes: "
+                                 "%.3f %% / 100 %%" %
+                                 (100 * float(s_idx + 1) / n_subjects))
+                sys.stdout.flush()
+            sys.stdout.write("\n")
+
+            with open(os.path.join(db.norm_volumes_dir, 'done'), 'w') as f:
+                f.close()
+        else:
+            print "Volumes already normalized"
