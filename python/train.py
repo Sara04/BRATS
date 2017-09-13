@@ -62,13 +62,13 @@ def main():
     meta.compute_tumor_distance_maps(db, args.exp_out)
     # _______________________________________________________________________ #
 
-    # 5. Normalize training and valid data
+    # 5. Normalize volumes
     # _______________________________________________________________________ #
     print "Volume normalization..."
     meta.compute_normalized_volumes(db, prep, args.exp_out, 'train')
     # _______________________________________________________________________ #
 
-    # 6. Segmentator training and validation on training subset
+    # 6. Segmentator training and validation on training dataset
     # _______________________________________________________________________ #
     print "Segmentator training and validation..."
     seg.training_and_validation(db, prep, patch_ex)
@@ -80,7 +80,7 @@ def main():
     seg.evaluate_dice_scores(db, prep, patch_ex)
     # _______________________________________________________________________ #
 
-    # 8. Preprocessing parameters
+    # 8. Determine postprocessing parameters
     # _______________________________________________________________________ #
     post.determine_parameters(db)
 
