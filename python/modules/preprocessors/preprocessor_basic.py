@@ -76,8 +76,6 @@ class PreprocessorBRATSBasic(PreprocessorBRATS):
         n_subjects = len(data_dict)
         for s_idx, s in enumerate(data_dict):
             for m in db.modalities:
-                if m in['seg']:
-                    continue
 
                 volume = data_dict[s].load_volume(db, m)
                 volume_norm_params = self.compute_norm_params(volume)
@@ -126,8 +124,7 @@ class PreprocessorBRATSBasic(PreprocessorBRATS):
         elif mode == 'test':
             data_dict = db.test_dict
 
-        out_path = os.path.join(exp_out, 'preprocessing',
-                                db.name(), self.name(), mode)
+        out_path = os.path.join(exp_out, 'preprocessing', self.name(), mode)
         done_path = os.path.join(out_path, 'done')
 
         if os.path.exists(done_path):
@@ -179,7 +176,7 @@ class PreprocessorBRATSBasic(PreprocessorBRATS):
         """
         volumes = scan.load_volumes(db)
         volumes_n = {}
-        for m_idx, m in enumerate(db.modalities[:-1]):
+        for m_idx, m in enumerate(db.modalities):
             volumes_n[m] = self.normalize(scan, m, volumes[m_idx], volumes[5])
             if self.clip:
                 volumes_n[m] = np.clip(volumes_n[m], self.clip_l, self.clip_u)
