@@ -10,8 +10,8 @@ class PatchExtractorBRATS(object):
             augment_train: flag indicating whether to augment training data
 
         Methods:
-            extract_data: extract data for training or validation
-                (with equal distribution of classes)
+            extract_train_or_valid_data: extract data for
+                training or validation (with equal distribution of classes)
             extract_test_patches: extract data for testing
     """
     def __init__(self, w=240, h=240, d=155, augment_train=False):
@@ -19,7 +19,7 @@ class PatchExtractorBRATS(object):
         self.w, self.h, self.d = [w, h, d]
         self.augment_train = augment_train
 
-    def extract_data(self, db, pp, seg, exp_out, mode='train'):
+    def extract_train_or_valid_data(self, db, pp, seg, exp_out, mode='train'):
         """Extraction of training and validation data."""
         """
             Arguments:
