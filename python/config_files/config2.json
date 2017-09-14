@@ -12,16 +12,23 @@
 		},
 		"preprocessor":
 		{
-                        "name":"PreprocessorBRATS1",
+                        "name":"PreprocessorBRATSBasic",
 			"arguments":
 			{
 				"norm_type":"mean_std",
 				"clip":"True"
 			}
 		},
+		"meta_data_extractor":
+		{
+			"name":"MetaDataExtractorBRATS",
+			"arguments":
+			{
+			}
+		},
 		"patch_extractor":
 		{
-                        "name":"PatchExtractorBRATS1",
+                        "name":"PatchExtractorBRATSForCNN12",
 			"arguments":
 			{
 				"lp_w":45,
@@ -42,8 +49,8 @@
 			"name":"CnnBRATS2",
                         "arguments":
                         {
-				"learning_rate":"0.0001",
-                                "loss_weights":[0.25, 0.75]
+				"lr":0.0001,
+                                "lw":[0.25, 0.75]
 			}
 		},
 		"postprocessor":
