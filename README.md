@@ -10,11 +10,11 @@ Instructions on how to run CNN training:
 
 In the configuration file (config2.json) db_path should be replaced by the path to the BRATS database  
 BRATS database structure:  
-	- Brats17TestingData  
-	- Brats17TrainingData  
-		-HGG  
-		-LGG  
-	- Brats17ValidationData
+    - Brats17TestingData  
+    - Brats17TrainingData  
+        -HGG  
+        -LGG  
+    - Brats17ValidationData
 
 output-directory-path - directory path where the meta data, model and segmentation results will be placed
 _______________________________________________________________________________________________________________________
@@ -33,9 +33,9 @@ json '2.0.9'
 _______________________________________________________________________________________________________________________
 Note:  
 Following scripts and classes will be added / updated:  
-	- class for post-processing  
-	- validation tool-chain  
-	- testing tool-chain
+    - class for post-processing  
+    - validation tool-chain  
+    - testing tool-chain
 _______________________________________________________________________________________________________________________
 [1] Menze BH, Jakab A, Bauer S, Kalpathy-Cramer J, Farahani K, Kirby J, Burren Y, Porz N, Slotboom J, Wiest R, Lanczi L, Gerstner E, Weber MA, Arbel T, Avants BB, Ayache N, Buendia P, Collins DL, Cordier N, Corso JJ, Criminisi A, Das T, Delingette H, Demiralp Ç, Durst CR, Dojat M, Doyle S, Festa J, Forbes F, Geremia E, Glocker B, Golland P, Guo X, Hamamci A, Iftekharuddin KM, Jena R, John NM, Konukoglu E, Lashkari D, Mariz JA, Meier R, Pereira S, Precup D, Price SJ, Raviv TR, Reza SM, Ryan M, Sarikaya D, Schwartz L, Shin HC, Shotton J, Silva CA, Sousa N, Subbanna NK, Szekely G, Taylor TJ, Thomas OM, Tustison NJ, Unal G, Vasseur F, Wintermark M, Ye DH, Zhao L, Zhao B, Zikic D, Prastawa M, Reyes M, Van Leemput K. "The Multimodal Brain Tumor Image Segmentation Benchmark (BRATS)", IEEE Transactions on Medical Imaging 34(10), 1993-2024 (2015)
 
