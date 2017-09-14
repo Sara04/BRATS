@@ -33,13 +33,16 @@ class CnnBRATS2(SegmentatorBRATS):
     """
     def __init__(self, lr=10e-4, lw=[0.25, 0.75], kp=0.5,
                  restore=False, restore_it=0,
+                 train_iters=100000,
                  lp_w=45, lp_h=45, lp_d=11, sp_w=17, sp_h=17, sp_d=4):
         """Class initialization."""
         self.lr, self.lw, self.kp = [lr, lw, kp]
 
         self.restore, self.restore_it = [restore, restore_it]
 
-        self.keep_prob = tf.palceholder(tf.float32)
+        self.train_iters = train_iters
+
+        self.keep_prob = tf.placeholder(tf.float32)
         self.lp_w, self.lp_h, self.lp_d = [lp_w, lp_h, lp_d]
         self.sp_w, self.sp_h, self.sp_d = [sp_w, sp_h, sp_d]
 
@@ -190,14 +193,13 @@ class CnnBRATS2(SegmentatorBRATS):
         # ___________________________________________________________________ #
         cross_entropy =\
             self.lw[0] *\
-            tf.reduce_mean(-tf.reduce_sum(self.y_gt_r1 * tf.log(mp_h_fcn1_r1),
+            tf.reduce_mean(-tf.reduce_sum(self.gt_r1 * tf.log(mp_h_fcn1_r1),
                                           reduction_indices=[1])) +\
             self.lw[1] *\
-            tf.reduce_mean(-tf.reduce_sum(self.y_gt_r2 * tf.log(mp_h_fcn1_r2),
+            tf.reduce_mean(-tf.reduce_sum(self.gt_r2 * tf.log(mp_h_fcn1_r2),
                                           reduction_indices=[1]))
         self.train_step =\
-            tf.train.AdamOptimizer(learning_rate=self.learning_rate).\
-            minimize(cross_entropy)
+            tf.train.AdamOptimizer(self.lr).minimize(cross_entropy)
 
         clf_r1 = tf.equal(tf.argmax(mp_h_fcn1_r1, 1), tf.argmax(self.gt_r1, 1))
         self.accuracy_r1 = tf.reduce_mean(tf.cast(clf_r1, tf.float32))
@@ -223,14 +225,15 @@ class CnnBRATS2(SegmentatorBRATS):
         seg_path = os.path.join(exp_out, 'segmentators', db.name(),
                                 prep.name(), patch_ex.name(), self.name())
         seg_done = os.path.join(seg_path, 'done')
-        if not seg_done:
+
+        if not os.path.exists(seg_done):
             if self.restore:
                 self.restore_model(seg_path, self.restore_it)
 
-            if not os.path.exsits(seg_path):
-                os.path.makedirs(seg_path)
+            if not os.path.exists(seg_path):
+                os.makedirs(seg_path)
 
-            for it in range(self.restore_it + 1, self.train_valid_iters):
+            for it in range(self.restore_it, self.train_iters):
 
                 self._train(db, prep, patch_ex, exp_out)
 
@@ -241,40 +244,62 @@ class CnnBRATS2(SegmentatorBRATS):
                     valid_acc_l_region, valid_acc_s_region =\
                         self._validate(db, prep, patch_ex, exp_out, 'valid')
 
+                    print("train, valid accuracy:" + " " +
+                          str(train_acc_l_region) + " " +
+                          str(train_acc_s_region) + " " +
+                          str(valid_acc_l_region) + " " +
+                          str(valid_acc_s_region))
                 if it % 50 == 0:
                     self.save_model(seg_path, it)
         else:
             print "Segmentator is already trained!"
 
     def _train(self, db, prep, patch_ex, exp_out):
-        data = patch_ex.extract_data(db, prep, exp_out, mode='train')
+        data = patch_ex.extract_train_or_valid_data(db, prep, exp_out, 'train')
 
-        self.sess.run(self.train_step,
-                      feed_dict={self.lp_x_r1: data['region_1']['l_patch'],
-                                 self.sp_x_r1: data['region_1']['s_patch'],
-                                 self.y_gt_r1: data['region_1']['labels'],
-                                 self.lp_x_r2: data['region_2']['l_patch'],
-                                 self.sp_x_r2: data['region_2']['s_patch'],
-                                 self.y_gt_r2: data['region_2']['labels'],
-                                 self.keep_prob: self.kp})
+        if data['region_1']['labels'].shape[0]:
+            random_s =\
+                np.random.choice(data['region_1']['labels'].shape[0],
+                                 int(0.4 * data['region_1']['labels'].shape[0]),
+                                 replace=False)
+            for idx, r in enumerate(random_s):
+                data['region_1']['labels'][r, :] = np.zeros(4)
+                data['region_1']['labels'][r, np.random.randint(4)] = 1
+
+            random_s =\
+                np.random.choice(data['region_2']['labels'].shape[0],
+                                 int(0.2 * data['region_2']['labels'].shape[0]),
+                                 replace=False)
+            for idx, r in enumerate(random_s):
+                data['region_2']['labels'][r, :] = np.zeros(2)
+                data['region_2']['labels'][r, np.random.randint(2)] = 1
+
+            self.sess.run(self.train_step,
+                          feed_dict={self.lp_x_r1: data['region_1']['l_patch'],
+                                     self.sp_x_r1: data['region_1']['s_patch'],
+                                     self.gt_r1: data['region_1']['labels'],
+                                     self.lp_x_r2: data['region_2']['l_patch'],
+                                     self.sp_x_r2: data['region_2']['s_patch'],
+                                     self.gt_r2: data['region_2']['labels'],
+                                     self.keep_prob: self.kp})
 
     def _validate(self, db, prep, patch_ex, exp_out, subset):
         if subset == 'train':
-            data = patch_ex.extract_data(db, prep, exp_out, 'train_valid')
+            data = patch_ex.extract_train_or_valid_data(db, prep, exp_out, 'train_valid')
         elif subset == 'valid':
-            data = patch_ex.extract_data(db, prep, exp_out, 'valid')
+            data = patch_ex.extract_train_or_valid_data(db, prep, exp_out, 'valid')
 
         accuracy_l_region =\
             self.sess.run(self.accuracy_r1,
                           feed_dict={self.lp_x_r1: data['region_1']['l_patch'],
                                      self.sp_x_r1: data['region_1']['s_patch'],
-                                     self.y_gt_r1: data['region_1']['labels'],
+                                     self.gt_r1: data['region_1']['labels'],
                                      self.keep_prob: 1.0})
         accuracy_s_region =\
             self.sess.run(self.accuracy_r2,
                           feed_dict={self.lp_x_r2: data['region_2']['l_patch'],
                                      self.sp_x_r2: data['region_2']['s_patch'],
-                                     self.y_gt_r2: data['region_2']['labels'],
+                                     self.gt_r2: data['region_2']['labels'],
                                      self.keep_prob: 1.0})
 
         return accuracy_l_region, accuracy_s_region
