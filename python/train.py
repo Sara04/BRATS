@@ -51,37 +51,38 @@ def main():
 
     # 3. Computing preprocessing parameters
     # _______________________________________________________________________ #
-    print "Getting preprocessing parameters..."
+    print "\nGetting preprocessing parameters..."
     prep.get_preprocessing_parameters(db, args.exp_out, 'train')
     # _______________________________________________________________________ #
 
     # 4. Computing brain masks and tumor distance maps
     # _______________________________________________________________________ #
-    print "Computing brain masks and tumor distance maps..."
+    print "\nComputing brain masks and tumor distance maps..."
     meta.compute_brain_masks(db, args.exp_out, 'train')
     meta.compute_tumor_distance_maps(db, args.exp_out)
     # _______________________________________________________________________ #
 
     # 5. Normalize volumes
     # _______________________________________________________________________ #
-    print "Volume normalization..."
+    print "\nVolume normalization..."
     meta.compute_normalized_volumes(db, prep, args.exp_out, 'train')
     # _______________________________________________________________________ #
 
     # 6. Segmentator training and validation on training dataset
     # _______________________________________________________________________ #
-    print "Segmentator training and validation..."
-    seg.training_and_validation(db, prep, patch_ex)
+    print "\nSegmentator training and validation..."
+    seg.training_and_validation(db, prep, patch_ex, args.exp_out)
     # _______________________________________________________________________ #
 
     # 7. Segmentator validation in terms of Dice scores on training subset
     # _______________________________________________________________________ #
-    print "Segmentator Dice score validation..."
-    seg.evaluate_dice_scores(db, prep, patch_ex)
+    print "\nSegmentator Dice score validation..."
+    seg.compute_classification_scores(db, prep, patch_ex, args.exp_out)
     # _______________________________________________________________________ #
 
     # 8. Determine postprocessing parameters
     # _______________________________________________________________________ #
+    print "\nDetermining postprocessing parameters..."
     post.determine_parameters(db)
 
 if __name__ == '__main__':
