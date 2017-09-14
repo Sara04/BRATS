@@ -50,7 +50,7 @@ class ScanBRATS(object):
             Returns:
                 volume as numpy array
         """
-        volume_path = os.path.join(db.normalized_volumes_dir, self.name,
+        volume_path = os.path.join(db.norm_volumes_dir, self.name,
                                    self.name + '_' + m + '.bin')
         return np.reshape(np.fromfile(volume_path, dtype='float32'),
                           [db.h, db.w, db.d])
@@ -96,9 +96,9 @@ class ScanBRATS(object):
         """
         if load_normalized:
             volumes = [self.load_normalized_volume(db, m)
-                       for m in db.modalities[:-1]]
+                       for m in db.modalities]
         else:
-            volumes = [self.load_volume(db, m) for m in db.modalities[:-1]]
+            volumes = [self.load_volume(db, m) for m in db.modalities]
         if load_seg:
             volumes.append(self.load_volume(db, 'seg'))
         if load_bm:
