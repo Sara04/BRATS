@@ -1,0 +1,2 @@
+
+from .postprocessor_for_cnn12 import PostprocessorBRATSForCNN12
