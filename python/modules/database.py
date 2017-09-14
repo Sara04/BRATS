@@ -74,7 +74,7 @@ class DatabaseBRATS(object):
         self.train_valid = []
 
         self.brain_masks_dir = None
-        self.normalized_volumes_dir = None
+        self.norm_volumes_dir = None
         self.tumor_dist_dir = None
         self.seg_results_dir = None
         self.seg_results_dir = None
