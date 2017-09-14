@@ -17,7 +17,7 @@ class PatchExtractorBRATS(object):
     def __init__(self, w=240, h=240, d=155, augment_train=False):
         """Initialization of PatchExtractorBRATS attributes."""
         self.w, self.h, self.d = [w, h, d]
-        self.augment_train = augment_train
+        self.augment_train = augment_train in ['True', 'true', 'yes', 'Yes']
 
     def extract_train_or_valid_data(self, db, pp, seg, exp_out, mode='train'):
         """Extraction of training and validation data."""
