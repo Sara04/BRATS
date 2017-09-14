@@ -31,7 +31,7 @@ class CnnBRATS2(SegmentatorBRATS):
             save_model: saving trained model
             restore_model: restoreing trained model
     """
-    def __init__(self, lr=10e-4, lw=[0.25, 0.75], kp=0.5,
+    def __init__(self, lr=1e-4, lw=[0.25, 0.75], kp=0.5,
                  restore=False, restore_it=0,
                  train_iters=100000,
                  lp_w=45, lp_h=45, lp_d=11, sp_w=17, sp_h=17, sp_d=4):
@@ -351,7 +351,7 @@ class CnnBRATS2(SegmentatorBRATS):
                 input_path: path to the input directory
                 it: train iteration of the model to be restored
         """
-        model_path = os.path.join(input_path, self.name(), 'model_' + str(it))
+        model_path = os.path.join(input_path, 'model_' + str(it))
         self.saver.restore(self.sess, model_path)
 
     def save_model(self, output_path, it):
@@ -361,7 +361,7 @@ class CnnBRATS2(SegmentatorBRATS):
                 output_path: path to the output directory
                 it:  train iteration of the model to be saved
         """
-        model_path = os.path.join(output_path, self.name(), 'model_' + str(it))
+        model_path = os.path.join(output_path, 'model_' + str(it))
         if not os.path.exists(os.path.dirname(model_path)):
             os.makedirs(os.path.dirname(model_path))
         self.saver.save(self.sess, model_path)
