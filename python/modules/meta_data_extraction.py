@@ -107,10 +107,10 @@ class MetaDataExtractorBRATS(object):
         else:
             print "Tumor distance maps already computed"
 
-    def _normalize_and_volumes(self, scan, db, prep):
+    def _normalize_volumes(self, scan, db, prep):
 
         n_volumes = prep.normalize_volumes(db, scan)
-        for m in db.modalities[:-1]:
+        for m in db.modalities:
             n_volume_path = os.path.join(db.norm_volumes_dir,
                                          scan.name,
                                          scan.name + '_' + m + '.bin')
@@ -141,7 +141,7 @@ class MetaDataExtractorBRATS(object):
             if not os.path.exists(db.norm_volumes_dir):
                 os.makedirs(db.norm_volumes_dir)
             for s_idx, s in enumerate(data_dict):
-                self._normalize_and_volumes(data_dict[s], db, prep)
+                self._normalize_volumes(data_dict[s], db, prep)
                 sys.stdout.write("\rComputing and saving normalized volumes: "
                                  "%.3f %% / 100 %%" %
                                  (100 * float(s_idx + 1) / n_subjects))
