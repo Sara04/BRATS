@@ -1,4 +1,5 @@
 """Class for BRATS 2017 segmentation."""
+import os
 
 
 class SegmentatorBRATS(object):
@@ -8,6 +9,10 @@ class SegmentatorBRATS(object):
         Methods:
             training_and_validation: training and validation of
                 algorithm on training dataset
+            compute_classification_scores: computation of
+                classification scores
+            save_model: saving trained model
+            restore_model: restoreing trained model
     """
     def training_and_validation(self, db, prep, patch_ex, exp_out):
         """Run slgorithm's training and validation."""
@@ -18,35 +23,12 @@ class SegmentatorBRATS(object):
                 patch_ex: PatchExtractorBRATS object
                 exp_out: path to the experiment output
         """
-        self.validate(db, prep, patch_ex, exp_out, 'train')
-        self.validate(db, prep, patch_ex, exp_out, 'valid')
-
-        self.train(db, prep, patch_ex, exp_out)
-
-    def validate(self, db, prep, patch_ex, exp_out, subset):
-        """Run algorithm's validation."""
-        """
-            Arguments:
-                db: DatabaseBRATS object
-                prep: PreprocessorBRATS object
-                patch_ex: PatchExtractorBRATS object
-                exp_out: path to the experiment output
-                subset: selection of training subset
-                    (train or valid)
-        """
         raise NotImplementedError()
 
-    def train(self, db, prep, patch_ex, exp_out):
-        """Run algorithm's training."""
-        """
-            Arguments:
-                db: DatabaseBRATS object
-                prep: PreprocessorBRATS object
-                patch_ex: PatchExtractorBRATS object
-                exp_out: path to the experiment output
-                subset: selection of training subset
-                    (train or valid)
-        """
+    def _validate(self, db, prep, patch_ex, exp_out, subset):
+        raise NotImplementedError()
+
+    def _train(self, db, prep, patch_ex, exp_out):
         raise NotImplementedError()
 
     def _compute_clf_scores_per_scan(self, db, prep, patch_ex,
@@ -55,7 +37,7 @@ class SegmentatorBRATS(object):
 
     def compute_classification_scores(self, db, prep, patch_ex,
                                       exp_out, dataset):
-        """Run Dice score computation per volume."""
+        """Compute classification scores on selected dataset."""
         """
             Arguments:
                 db: DatabaseBRATS object
@@ -74,8 +56,13 @@ class SegmentatorBRATS(object):
         elif dataset == 'test':
             data_dict = db.test_dict
 
+        clf_path = os.path.join(exp_out, 'classification_probabilities',
+                                db.name(), prep.name(), patch_ex.name(),
+                                self.name(), dataset)
+        if not os.path.exists(clf_path):
+            os.makedirs(clf_path)
         for s in data_dict:
-            self._compute_clf_scores_per_scan(db, prep, patch_ex, exp_out, s)
+            self._compute_clf_scores_per_scan(db, prep, patch_ex, clf_path, s)
 
     def save_model(self, output_path, it=0):
         """Saving trained segmentation model."""
@@ -86,7 +73,7 @@ class SegmentatorBRATS(object):
         """
         raise NotImplementedError()
 
-    def restore_model(self, input_path, it):
+    def restore_model(self, input_path, it=0):
         """Restoring trained segmentation model."""
         """
             Arguments:
