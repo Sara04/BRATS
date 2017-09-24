@@ -17,7 +17,7 @@ class MetaDataExtractorBRATS(object):
                 normalized volumes
     """
 
-    def _compute_and_save_brain_mask(self, scan, db, brain_mask_path):
+    def _compute_and_save_brain_mask(self, scan, db):
 
         bm_path = os.path.join(db.brain_masks_dir,
                                scan.name + '_brain_mask.bin')
