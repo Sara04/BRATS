@@ -55,7 +55,7 @@
 		},
 		"postprocessor":
                 {
-			"name":"PostprocessorBRATS2",
+			"name":"PostprocessorBRATSForCNN12",
                         "arguments":
 			{
                         }
