@@ -84,15 +84,7 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
         dist = np.zeros((self.lp_h, self.lp_w, 3))
 
         b_, d_ = [np.copy(b), [0, self.lp_h, 0, self.lp_w]]
-
-        if b_[0] < 0:
-            d_[0], b_[0] = [0 - b_[0], 0]
-        if b_[2] < 0:
-            d_[2], b_[2] = [0 - b_[2], 0]
-        if b_[1] > self.h:
-            d_[1], b_[1] = [self.lp_h - (b_[1] - self.h), self.h]
-        if b_[3] > self.w:
-            d_[3], b_[3] = [self.lp_w - (b_[3] - self.w), self.w]
+        b_, d_ = self._verify_border_cases(b_, d_)
 
         dist[d_[0]:d_[1], d_[2]:d_[3], 0] =\
             self.h_coord[b[0]: b[1], b[2]: b[3]]
@@ -110,18 +102,7 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
         rs = np.random.choice(len(scans), self.scans_per_batch, replace=False)
         return [scans[idx] for idx in rs]
 
-    def _modality_patches(self, scan, m, volume, b, mode):
-
-        lpm = np.zeros((self.lp_h, self.lp_w, 2))
-        spm = np.zeros((self.sp_h, self.sp_w, 1))
-
-        b_, d_ = [np.copy(b), [0, self.lp_h, 0, self.lp_w]]
-
-        if mode == 'train' and self.augment_train:
-            # Shift mirrored patches for augmentation
-            b_, d_ = [np.copy(b), [0, self.lp_h, 0, self.lp_w]]
-            sh_1, sh_2 = [np.random.randint(11) - 5, np.random.randint(11) - 5]
-            b_ = [b_[0] + sh_1, b_[1] + sh_1, b_[2] + sh_2, b_[3] + sh_2, b_[4]]
+    def _verify_border_cases(self, b_, d_):
 
         if b_[0] < 0:
             d_[0], b_[0] = [0 - b_[0], 0]
@@ -132,8 +113,25 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
         if b_[3] > self.w:
             d_[3], b_[3] = [self.lp_w - (b_[3] - self.w), self.w]
 
+        return b_, d_
+
+    def _modality_patches(self, scan, m, volume, b, mode):
+
+        lpm = np.zeros((self.lp_h, self.lp_w, self.lpm_d))
+        spm = np.zeros((self.sp_h, self.sp_w, self.spm_d))
+
+        b_, d_ = [np.copy(b), [0, self.lp_h, 0, self.lp_w]]
+        b_, d_ = self._verify_border_cases(b_, d_)
+
         lpm[d_[0]:d_[1], d_[2]:d_[3], 0] =\
             volume[b_[0]: b_[1], b_[2]: b_[3], b_[4]]
+
+        if mode == 'train' and self.augment_train:
+            # Shift mirrored patches for augmentation
+            b_, d_ = [np.copy(b), [0, self.lp_h, 0, self.lp_w]]
+            sh_1, sh_2 = [np.random.randint(11) - 5, np.random.randint(11) - 5]
+            b_ = [b_[0] + sh_1, b_[1] + sh_1, b_[2] + sh_2, b_[3] + sh_2, b_[4]]
+            b_, d_ = self._verify_border_cases(b_, d_)
 
         lpm[self.lp_h - d_[1]:self.lp_h - d_[0],
             self.lp_w - d_[3]:self.lp_w - d_[2], 1] =\
@@ -178,11 +176,9 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
                         lp[:, :, -2] = lp[::-1, :, -2] * (-1)
 
                     for lp_idx in range(self.lp_d - 3):
-                        lp[:, :, lp_idx] += 0.2 * np.random.randn(self.lp_h,
-                                                                  self.lp_w)
+                        lp[:, :, lp_idx] += 0.2 * np.random.randn(1)[0]
                     for sp_idx in range(self.sp_d):
-                        sp[:, :, sp_idx] += 0.2 * np.random.randn(self.sp_h,
-                                                                  self.sp_w)
+                        sp[:, :, sp_idx] += 0.2 * np.random.randn(1)[0]
                 lpc[s_idx, :] = np.ravel(lp)
                 spc[s_idx, :] = np.ravel(sp)
             n_available = s_idx + 1
@@ -266,6 +262,7 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
         """
         data = self._allocate_data_memory(db)
         selected_scans = self._select_scans_randomly(db, mode)
+
         data_dict = db.train_dict
         c = {'r1': {}, 'r2': {}}
         for k in db.classes:
@@ -291,7 +288,8 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
                 c['r2'][i] += n
 
         data_ = {}
-        data_['region_1'], data_['region_2'] = self._shuffle_and_select_data(data, c, db)
+        data_['region_1'], data_['region_2'] =\
+            self._shuffle_and_select_data(data, c, db)
 
         if data_['region_1']['labels'].shape[0]:
             return data_
