@@ -32,7 +32,7 @@ class CnnBRATS2(SegmentatorBRATS):
             restore_model: restoreing trained model
     """
     def __init__(self, lr=1e-4, lw=[0.25, 0.75], kp=0.5,
-                 restore=False, restore_it=0,
+                 restore=True, restore_it=13000,
                  train_iters=100000,
                  lp_w=45, lp_h=45, lp_d=11, sp_w=17, sp_h=17, sp_d=4):
         """Class initialization."""
@@ -203,11 +203,11 @@ class CnnBRATS2(SegmentatorBRATS):
 
         clf_r1 = tf.equal(tf.argmax(mp_h_fcn1_r1, 1), tf.argmax(self.gt_r1, 1))
         self.accuracy_r1 = tf.reduce_mean(tf.cast(clf_r1, tf.float32))
-        self.probabilities_1 = mp_h_fcn1_r2_4
+        self.probabilities_1 = mp_h_fcn1_r1
 
         clf_r2 = tf.equal(tf.argmax(mp_h_fcn1_r2, 1), tf.argmax(self.gt_r2, 1))
         self.accuracy_r2 = tf.reduce_mean(tf.cast(clf_r2, tf.float32))
-        self.probabilities_2 = mp_4_to_2
+        self.probabilities_2 = mp_h_fcn1_r2
 
         vars_to_save = tf.trainable_variables()
         self.sess.run(tf.global_variables_initializer())
@@ -226,10 +226,10 @@ class CnnBRATS2(SegmentatorBRATS):
                                 prep.name(), patch_ex.name(), self.name())
         seg_done = os.path.join(seg_path, 'done')
 
-        if not os.path.exists(seg_done):
-            if self.restore:
-                self.restore_model(seg_path, self.restore_it)
+        if self.restore:
+            self.restore_model(seg_path, self.restore_it)
 
+        if not os.path.exists(seg_done):
             if not os.path.exists(seg_path):
                 os.makedirs(seg_path)
 
@@ -311,11 +311,11 @@ class CnnBRATS2(SegmentatorBRATS):
         volumes = scan.load_volumes(db, load_normalized=True)
 
         indices = np.where(volumes[5])
-        class_number = np.zeros((scan.h, scan.w, scan.d))
-        p_0 = np.zeros((scan.h, scan.w, scan.d))
-        p_1 = np.zeros((scan.h, scan.w, scan.d))
-        p_2 = np.zeros((scan.h, scan.w, scan.d))
-        p_4 = np.zeros((scan.h, scan.w, scan.d))
+        class_number = np.zeros((db.h, db.w, db.d))
+        p_0 = np.zeros((db.h, db.w, db.d))
+        p_1 = np.zeros((db.h, db.w, db.d))
+        p_2 = np.zeros((db.h, db.w, db.d))
+        p_4 = np.zeros((db.h, db.w, db.d))
 
         n_indices = len(indices[0])
         i = 0
