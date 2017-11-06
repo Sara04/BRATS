@@ -28,7 +28,7 @@ class DatabaseBRATS(object):
             h, w, d: scan's height, width and depth (number of slices)
 
             valid_p: percentage of training data that will be used for
-                algorithm training validation
+                algorithm's training validation
 
             train_dict: dictionary for storing training scans
             valid_dict: dictionary for storing validation scans
@@ -125,13 +125,6 @@ class DatabaseBRATS(object):
 
     def train_valid_split(self, folder_name='Brats17TrainingData'):
         """Splitting training data into train and valid subsets."""
-        """
-            Note:
-                Training data is split into train and validation subset since
-                validation database is used for final testing using BRATS
-                evaluation system and ground truth labels are not provided
-                for it.
-        """
         """
             Arguments:
                 folder_name: name of the folder where training data is stored
