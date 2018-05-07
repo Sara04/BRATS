@@ -49,6 +49,9 @@
 			"name":"CnnBRATS2",
                         "arguments":
                         {
+                                "restore":"False",
+                                "restore_it":0,
+                                "train_iters":100,
 				"lr":0.0001,
                                 "lw":[0.25, 0.75]
 			}

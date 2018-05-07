@@ -77,7 +77,7 @@ def main():
     # 7. Segmentator validation in terms of Dice scores on training subset
     # _______________________________________________________________________ #
     print "\nSegmentator Dice score validation..."
-    seg.compute_classification_scores(db, prep, patch_ex, args.exp_out)
+    seg.compute_classification_scores(db, prep, patch_ex, args.exp_out, 'train')
     # _______________________________________________________________________ #
 
     # 8. Determine postprocessing parameters

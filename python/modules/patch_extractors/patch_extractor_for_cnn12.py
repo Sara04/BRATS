@@ -26,13 +26,15 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
             extract_test_patches: extract data for testing
     """
     def __init__(self,
-                 scans_per_batch=5, patches_per_scan=50,
+                 scans_per_batch=5, train_patches_per_scan=50,
+                 test_patches_per_scan=100,
                  lp_w=45, lp_h=45, lp_d=11, sp_w=17, sp_h=17, sp_d=4,
                  td_th_1=20, td_th_2=256, lpm_d=2, spm_d=1, **kwargs):
         """Initialization of PatchExtractorBRATS attributes."""
         super(PatchExtractorBRATSForCNN12, self).__init__(**kwargs)
         self.scans_per_batch = scans_per_batch
-        self.patches_per_scan = patches_per_scan
+        self.train_patches_per_scan = train_patches_per_scan
+        self.test_patches_per_scan = test_patches_per_scan
 
         self.lp_w, self.lp_h, self.lp_d = [lp_w, lp_h, lp_d]
         self.sp_w, self.sp_h, self.sp_d = [sp_w, sp_h, sp_d]
@@ -65,18 +67,18 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
         for i in db.classes:
             data['region_1'][i] = {}
             data['region_1'][i]['l_patch'] =\
-                np.zeros((self.patches_per_scan * self.scans_per_batch,
+                np.zeros((self.train_patches_per_scan * self.scans_per_batch,
                           self.lp_w * self.lp_h * self.lp_d))
             data['region_1'][i]['s_patch'] =\
-                np.zeros((self.patches_per_scan * self.scans_per_batch,
+                np.zeros((self.train_patches_per_scan * self.scans_per_batch,
                           self.sp_w * self.sp_h * self.sp_d))
         for i in range(2):
             data['region_2'][i] = {}
             data['region_2'][i]['l_patch'] =\
-                np.zeros((self.patches_per_scan * self.scans_per_batch,
+                np.zeros((self.train_patches_per_scan * self.scans_per_batch,
                           self.lp_w * self.lp_h * self.lp_d))
             data['region_2'][i]['s_patch'] =\
-                np.zeros((self.patches_per_scan * self.scans_per_batch,
+                np.zeros((self.train_patches_per_scan * self.scans_per_batch,
                           self.sp_w * self.sp_h * self.sp_d))
         return data
 
@@ -144,14 +146,14 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
         return lpm, spm
 
     def _class_patches(self, db, scan, volumes, mask, pp, mode):
-        lpc = np.zeros((self.patches_per_scan,
+        lpc = np.zeros((self.train_patches_per_scan,
                         self.lp_h * self.lp_w * self.lp_d))
-        spc = np.zeros((self.patches_per_scan,
+        spc = np.zeros((self.train_patches_per_scan,
                         self.sp_h * self.sp_w * self.sp_d))
 
         n_available = len(mask[0])
         if n_available:
-            n_select = np.min([self.patches_per_scan, n_available])
+            n_select = np.min([self.train_patches_per_scan, n_available])
             select = np.random.choice(n_available, n_select, replace=False)
             for s_idx, s in enumerate(select):
                 lp = np.zeros((self.lp_h, self.lp_w, self.lp_d))
@@ -323,7 +325,8 @@ class PatchExtractorBRATSForCNN12(PatchExtractorBRATS):
                  ind_part[1][j] - self.phs, ind_part[1][j] + self.phe,
                  ind_part[2][j]]
             for i, m in enumerate(db.modalities):
-                lpm, spm = self._modality_patches(scan, m, volumes[i], b)
+                lpm, spm = self._modality_patches(scan, m, volumes[i], b,
+                                                  'test')
                 lp[:, :, i * self.lpm_d:(i + 1) * self.lpm_d] = lpm
                 sp[:, :, i * self.spm_d:(i + 1) * self.spm_d] = spm
             lp[:, :, self.lpm_d * db.n_modalities:

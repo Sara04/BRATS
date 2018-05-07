@@ -1,5 +1,6 @@
 """Segmentation class."""
 import tensorflow as tf
+import sys
 import os
 import numpy as np
 
@@ -38,7 +39,8 @@ class CnnBRATS2(SegmentatorBRATS):
         """Class initialization."""
         self.lr, self.lw, self.kp = [lr, lw, kp]
 
-        self.restore, self.restore_it = [restore, restore_it]
+        self.restore = restore in ["True", "true", "yes", "Yes"]
+        self.restore_it = restore_it
 
         self.train_iters = train_iters
 
@@ -233,26 +235,42 @@ class CnnBRATS2(SegmentatorBRATS):
             if not os.path.exists(seg_path):
                 os.makedirs(seg_path)
 
-            for it in range(self.restore_it, self.train_iters):
+            accuracy_info_path = os.path.join(seg_path, 'accuracy_info.txt')
+            f_acc = open(accuracy_info_path, 'a+')
+
+            print"CNN model training:"
+            for it in range(self.restore_it + 1, self.train_iters + 1):
 
                 self._train(db, prep, patch_ex, exp_out)
 
                 if it % 10 == 0:
 
-                    train_acc_l_region, train_acc_s_region =\
+                    train_acc_s_region, train_acc_l_region =\
                         self._validate(db, prep, patch_ex, exp_out, 'train')
-                    valid_acc_l_region, valid_acc_s_region =\
+                    valid_acc_s_region, valid_acc_l_region =\
                         self._validate(db, prep, patch_ex, exp_out, 'valid')
 
-                    print("train, valid accuracy:" + " " +
-                          str(train_acc_l_region) + " " +
-                          str(train_acc_s_region) + " " +
-                          str(valid_acc_l_region) + " " +
-                          str(valid_acc_s_region))
+                    sys.stdout.write("\rIteration: "
+                                     "%d "
+                                     "train accuracy " "%.3f  %.3f "
+                                     "valid accuracy " "%.3f  %.3f " %
+                                     (it,
+                                      train_acc_s_region, train_acc_l_region,
+                                      valid_acc_s_region, valid_acc_l_region))
+                    f_acc.write(str(train_acc_s_region) + " " +
+                                str(train_acc_l_region) + " " +
+                                str(valid_acc_s_region) + " " +
+                                str(valid_acc_l_region) + "\n")
+                    sys.stdout.flush()
+
                 if it % 50 == 0:
                     self.save_model(seg_path, it)
+            sys.stdout.write("\n")
+            with open(seg_done, 'w') as f:
+                f.close()
         else:
             print "Segmentator is already trained!"
+            self.restore_model(seg_path, self.train_iters)
 
     def _train(self, db, prep, patch_ex, exp_out):
         data = patch_ex.extract_train_or_valid_data(db, prep, exp_out, 'train')
@@ -289,20 +307,20 @@ class CnnBRATS2(SegmentatorBRATS):
         elif subset == 'valid':
             data = patch_ex.extract_train_or_valid_data(db, prep, exp_out, 'valid')
 
-        accuracy_l_region =\
+        accuracy_s_region =\
             self.sess.run(self.accuracy_r1,
                           feed_dict={self.lp_x_r1: data['region_1']['l_patch'],
                                      self.sp_x_r1: data['region_1']['s_patch'],
                                      self.gt_r1: data['region_1']['labels'],
                                      self.keep_prob: 1.0})
-        accuracy_s_region =\
+        accuracy_l_region =\
             self.sess.run(self.accuracy_r2,
                           feed_dict={self.lp_x_r2: data['region_2']['l_patch'],
                                      self.sp_x_r2: data['region_2']['s_patch'],
                                      self.gt_r2: data['region_2']['labels'],
                                      self.keep_prob: 1.0})
 
-        return accuracy_l_region, accuracy_s_region
+        return accuracy_s_region, accuracy_l_region
 
     def _compute_clf_scores_per_scan(self, db, prep, patch_ex, clf_out, scan):
 
@@ -352,7 +370,11 @@ class CnnBRATS2(SegmentatorBRATS):
                 it: train iteration of the model to be restored
         """
         model_path = os.path.join(input_path, 'model_' + str(it))
-        self.saver.restore(self.sess, model_path)
+        if os.path.exists(model_path + '.meta'):
+            self.saver.restore(self.sess, model_path)
+        else:
+            print "Selected CNN model does not exist!!!"
+            sys.exit(2)
 
     def save_model(self, output_path, it):
         """Saving trained segmentation model."""

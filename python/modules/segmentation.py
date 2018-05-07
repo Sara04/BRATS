@@ -62,7 +62,8 @@ class SegmentatorBRATS(object):
         if not os.path.exists(clf_path):
             os.makedirs(clf_path)
         for s in data_dict:
-            self._compute_clf_scores_per_scan(db, prep, patch_ex, clf_path, s)
+            self._compute_clf_scores_per_scan(db, prep, patch_ex, clf_path,
+                                              data_dict[s])
 
     def save_model(self, output_path, it=0):
         """Saving trained segmentation model."""
