@@ -69,7 +69,7 @@ class PostprocessorBRATSForCNN12(PostprocessorBRATS):
 
             mask_whole = (segment_test != 0) *\
                          (segment_sc_test_t > self.score_th_1) *\
-                         (segment_sc_test_m > self.score_th_4)
+                         (segment_sc_test_m > self.score_th_2)
             M, label = measurements.label(mask_whole)
 
             for i in range(1, label + 1):
